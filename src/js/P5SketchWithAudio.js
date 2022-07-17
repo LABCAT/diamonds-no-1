@@ -3,6 +3,8 @@ import "./helpers/Globals";
 import "p5/lib/addons/p5.sound";
 import * as p5 from "p5";
 import { Midi } from '@tonejs/midi'
+import Diamond from './classes/Diamond.js';
+import { TetradicColourCalculator } from './functions/ColourCalculators';
 import PlayIcon from './functions/PlayIcon.js';
 
 import audio from "../audio/diamonds-no-1.ogg";
@@ -28,7 +30,8 @@ const P5SketchWithAudio = () => {
         p.loadMidi = () => {
             Midi.fromUrl(midi).then(
                 function(result) {
-                    const noteSet1 = result.tracks[5].notes; // Synth 1
+                    console.log(result);
+                    const noteSet1 = result.tracks[2].notes; // Synth 1 - Dark Power Lead
                     p.scheduleCueSet(noteSet1, 'executeCueSet1');
                     p.audioLoaded = true;
                     document.getElementById("loader").classList.add("loading--complete");
@@ -58,22 +61,69 @@ const P5SketchWithAudio = () => {
             }
         } 
 
+        p.gridCoords = [];
+
+        p.baseHue = 0;
+
+        p.colourSet = [];
+
         p.setup = () => {
             p.canvas = p.createCanvas(p.canvasWidth, p.canvasHeight);
+            p.colorMode(p.HSB);
+            p.baseHue = p.random(0, 360);
+            p.colourSet = TetradicColourCalculator(p, p.baseHue);
             p.background(0);
+            for (let i = 0; i < 11; i++) {
+                if(i > 0){
+                    p.gridCoords.push(
+                        {
+                            x: p.width / 11 * i,
+                            y: p.height / 4 * 1,
+                        }
+                    );
+                    p.gridCoords.push(
+                        {
+                            x: p.width / 11 * i,
+                            y: p.height / 4 * 3,
+                        }
+                    );
+                }
+                
+                p.gridCoords.push(
+                    {
+                        x: p.width / 11 * i + (p.width / 22),
+                        y: p.height / 2,
+                    }
+                );
+            }
         }
+
+        p.diamonds = [];
 
         p.draw = () => {
             if(p.audioLoaded && p.song.isPlaying()){
-
+                p.background(0);
+                for (let i = 0; i < p.diamonds.length; i++) {
+                    const diamond = p.diamonds[i];
+                    diamond.update();
+                    diamond.draw();
+                }
             }
         }
 
         p.executeCueSet1 = (note) => {
-            p.background(p.random(255), p.random(255), p.random(255));
-            p.fill(p.random(255), p.random(255), p.random(255));
-            p.noStroke();
-            p.ellipse(p.width / 2, p.height / 2, p.width / 4, p.width / 4);
+            const { currentCue } = note, 
+             coOrds = p.gridCoords[(currentCue - 1) % 31], 
+             { x, y } = coOrds; 
+            p.diamonds[(currentCue - 1) % 31] =
+                new Diamond(
+                    p,
+                    x,
+                    y,
+                    // p.colourSet[Math.floor(p.random(0, 4))],
+                    p.random(0, 360),
+                    p.height / 2
+                );
         }
 
         p.hasStarted = false;

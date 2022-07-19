@@ -32,7 +32,9 @@ const P5SketchWithAudio = () => {
                 function(result) {
                     console.log(result);
                     const noteSet1 = result.tracks[2].notes; // Synth 1 - Dark Power Lead
+                    const noteSet2 = result.tracks[6].notes; // Sampler 1 - Synthoni
                     p.scheduleCueSet(noteSet1, 'executeCueSet1');
+                    p.scheduleCueSet(noteSet2, 'executeCueSet2');
                     p.audioLoaded = true;
                     document.getElementById("loader").classList.add("loading--complete");
                     document.getElementById("play-icon").classList.remove("fade-out");
@@ -65,7 +67,9 @@ const P5SketchWithAudio = () => {
 
         p.baseHue = 0;
 
-        p.colourSet = [];
+        p.diamonds = [];
+
+        p.bigDiamonds = [];
 
         p.setup = () => {
             p.canvas = p.createCanvas(p.canvasWidth, p.canvasHeight);
@@ -98,11 +102,14 @@ const P5SketchWithAudio = () => {
             }
         }
 
-        p.diamonds = [];
-
         p.draw = () => {
             if(p.audioLoaded && p.song.isPlaying()){
                 p.background(0);
+                for (let i = 0; i < p.bigDiamonds.length; i++) {
+                    const diamond = p.bigDiamonds[i];
+                    diamond.update();
+                    diamond.draw();
+                }
                 for (let i = 0; i < p.diamonds.length; i++) {
                     const diamond = p.diamonds[i];
                     diamond.update();
@@ -124,6 +131,56 @@ const P5SketchWithAudio = () => {
                     p.random(0, 360),
                     p.height / 2
                 );
+        }
+
+        p.baseBigDiamondSize = 0;
+
+        p.executeCueSet2 = (note) => {
+            const { currentCue } = note 
+            if(!p.baseBigDiamondSize) {
+                p.baseBigDiamondSize = p.width * 8 / 3;
+            }
+            
+            p.bigDiamonds.push(
+                new Diamond(
+                    p,
+                    p.width / 2,
+                    p.height / 2,
+                    p.random(0, 360),
+                    p.baseBigDiamondSize, 
+                    0.02 * currentCue, 
+                    8
+                )
+            );
+
+            if(currentCue > 10) {
+                p.bigDiamonds.push(
+                    new Diamond(
+                        p,
+                        p.width / 4 * 1,
+                        p.height / 2,
+                        p.random(0, 360),
+                        p.baseBigDiamondSize, 
+                        0.25, 
+                        8
+                    )
+                );
+                p.bigDiamonds.push(
+                    new Diamond(
+                        p,
+                        p.width / 4 * 3,
+                        p.height / 2,
+                        p.random(0, 360),
+                        p.baseBigDiamondSize, 
+                        0.25, 
+                        8
+                    )
+                );
+            }
+
+            if(currentCue > 5) {
+                p.baseBigDiamondSize = p.baseBigDiamondSize * 0.95;
+            }
         }
 
         p.hasStarted = false;

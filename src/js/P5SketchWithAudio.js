@@ -65,8 +65,6 @@ const P5SketchWithAudio = () => {
 
         p.gridCoords = [];
 
-        p.baseHue = 0;
-
         p.diamonds = [];
 
         p.bigDiamonds = [];
@@ -127,7 +125,6 @@ const P5SketchWithAudio = () => {
                     p,
                     x,
                     y,
-                    // p.colourSet[Math.floor(p.random(0, 4))],
                     p.random(0, 360),
                     p.height / 2
                 );
@@ -228,7 +225,7 @@ const P5SketchWithAudio = () => {
         p.logCredits = () => {
             if (
                 !p.creditsLogged &&
-                parseInt(p.song.currentTime()) >= parseInt(p.song.buffer.duration)
+                parseInt(p.song.currentTime()) >= parseInt(p.song.buffer.duration - 1)
             ) {
                 p.creditsLogged = true;
                     console.log(
@@ -237,11 +234,37 @@ const P5SketchWithAudio = () => {
                     "Animation By: https://github.com/LABCAT/"
                 );
                 p.song.stop();
+                document.getElementById("play-icon").classList.remove("fade-out");
             }
         };
 
         p.reset = () => {
-
+            const coOrds = p.gridCoords[0], 
+                 { x, y } = coOrds; 
+            p.clear();
+            p.diamonds = [];
+            p.bigDiamonds = [];
+            p.baseBigDiamondSize = p.width * 8 / 3;
+            p.diamonds[0] =
+                new Diamond(
+                    p,
+                    x,
+                    y,
+                    p.random(0, 360),
+                    p.height / 2
+                );
+            
+            p.bigDiamonds.push(
+                new Diamond(
+                    p,
+                    p.width / 2,
+                    p.height / 2,
+                    p.random(0, 360),
+                    p.baseBigDiamondSize, 
+                    0.02, 
+                    8
+                )
+            );
         }
 
         p.updateCanvasDimensions = () => {
